@@ -80,6 +80,10 @@ public class CloakedCableModel extends WrapperBlockStateModel {
 		// facade as the block it copies would be lit: smooth, unless that block glows or its model opts out.
 		boolean smooth = look.getLightEmission() == 0;
 		emitter.pushTransform(quad -> {
+			// The facade is culled as the block it copies by the test below. Renderers such as Sodium cull every quad
+			// once more against the block being drawn, the cable, and culling mods (MoreCulling) can then hide the
+			// facade wherever a cable joins it. Without a cull face the quad is left to our test alone.
+			quad.cullFace(null);
 			if (quad.ambientOcclusion() == TriState.DEFAULT) {
 				quad.ambientOcclusion(TriState.of(smooth));
 			}
