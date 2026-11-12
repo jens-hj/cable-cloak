@@ -88,6 +88,15 @@ public class CloakClientGameTest implements FabricClientGameTest {
 			context.waitTicks(20);
 			sp.getConnection().waitForChunksRender();
 			shoot(context, out, "run_end");
+
+			// Night, torch-lit: cloaked cables (left) beside real stone bricks (right) should be lit the same, smoothly.
+			BlockPos lit = o.offset(0, 0, 8);
+			sp.getServer().runOnServer(server -> buildLightingScene(server, lit));
+			sp.getServer().runCommand("time set 18000");
+			sp.getServer().runCommand(String.format(Locale.ROOT, "tp @a %.2f %.2f %.2f 0 25", lit.getX() + 0.5, lit.getY() + 2.6 - 1.62, lit.getZ() - 4.5));
+			context.waitTicks(20);
+			sp.getConnection().waitForChunksRender();
+			shoot(context, out, "lighting");
 		}
 	}
 
@@ -121,6 +130,26 @@ public class CloakClientGameTest implements FabricClientGameTest {
 				cloak(level, pos, Blocks.STONE_BRICKS.defaultBlockState());
 			}
 		}
+	}
+
+	/** Two 3x2 walls side by side: cables cloaked as stone bricks, and real stone bricks, a torch between them. */
+	private static void buildLightingScene(MinecraftServer server, BlockPos lit) {
+		ServerLevel level = server.overworld();
+		for (int x = 0; x < 3; x++) {
+			for (int y = 0; y < 2; y++) {
+				BlockPos cable = lit.offset(-3 + x, y, 0);
+				level.setBlock(cable, NetworkContent.NEXUS_CABLE.get().defaultBlockState(), Block.UPDATE_ALL);
+				level.setBlock(lit.offset(1 + x, y, 0), Blocks.STONE_BRICKS.defaultBlockState(), Block.UPDATE_ALL);
+			}
+		}
+		for (int x = 0; x < 3; x++) {
+			for (int y = 0; y < 2; y++) {
+				BlockPos cable = lit.offset(-3 + x, y, 0);
+				level.setBlock(cable, level.getBlockState(cable), Block.UPDATE_ALL);
+				cloak(level, cable, Blocks.STONE_BRICKS.defaultBlockState());
+			}
+		}
+		level.setBlock(lit.offset(0, 0, -1), Blocks.TORCH.defaultBlockState(), Block.UPDATE_ALL);
 	}
 
 	private static void cloak(ServerLevel level, BlockPos pos, @Nullable BlockState look) {

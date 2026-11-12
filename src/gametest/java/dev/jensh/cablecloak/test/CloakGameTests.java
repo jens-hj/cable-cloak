@@ -33,10 +33,15 @@ public class CloakGameTests {
 
 	/** Right-click the cable's top face through the real interaction path (fires UseBlockCallback). */
 	private static InteractionResult use(GameTestHelper helper, ServerPlayer player, ItemStack stack) {
+		return useOn(helper, player, stack, CABLE, Direction.UP);
+	}
+
+	/** Right-click {@code face} of the block at {@code target}. */
+	private static InteractionResult useOn(GameTestHelper helper, ServerPlayer player, ItemStack stack, BlockPos target, Direction face) {
 		InteractionHand hand = InteractionHand.MAIN_HAND;
 		player.setItemInHand(hand, stack);
-		BlockPos abs = helper.absolutePos(CABLE);
-		BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(abs).add(0, 0.5, 0), Direction.UP, abs, false);
+		BlockPos abs = helper.absolutePos(target);
+		BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(abs).add(Vec3.atLowerCornerOf(face.getUnitVec3i()).scale(0.5)), face, abs, false);
 		// Same order as ServerPlayerGameMode.useItemOn, minus the packets a mock player cannot receive.
 		InteractionResult result = UseBlockCallback.EVENT.invoker().interact(player, helper.getLevel(), hand, hit);
 		if (result != InteractionResult.PASS) {
@@ -147,6 +152,35 @@ public class CloakGameTests {
 		ItemStack frame = new ItemStack(CableCloak.CLOAK_FRAME);
 		use(helper, player, frame);
 		helper.assertValueEqual(frame.getCount(), 1, "frame not used on stone");
+		helper.succeed();
+	}
+
+	@GameTest
+	public void dressFromNeighbouringFace(GameTestHelper helper) {
+		placeCable(helper);
+		BlockPos below = CABLE.below();
+		helper.setBlock(below, Blocks.STONE);
+		ServerPlayer player = player(helper);
+
+		// Clicking the top of the stone under the cable aims at the cable's spot.
+		ItemStack frame = new ItemStack(CableCloak.CLOAK_FRAME);
+		useOn(helper, player, frame, below, Direction.UP);
+		helper.assertTrue(cloak(helper).hasFrame(), "frame put on from the neighbouring face");
+		helper.assertTrue(frame.isEmpty(), "frame used");
+
+		ItemStack planks = new ItemStack(Items.OAK_PLANKS, 2);
+		useOn(helper, player, planks, below, Direction.UP);
+		helper.assertValueEqual(cloak(helper).facade(), Blocks.OAK_PLANKS.defaultBlockState(), "look applied from the neighbouring face");
+		helper.assertValueEqual(planks.getCount(), 1, "planks left");
+
+		// Same look again: nothing placed, nothing used.
+		useOn(helper, player, planks, below, Direction.UP);
+		helper.assertValueEqual(planks.getCount(), 1, "planks not used twice");
+
+		// Elsewhere, blocks still place normally.
+		ItemStack stone = new ItemStack(Items.STONE);
+		useOn(helper, player, stone, below, Direction.NORTH);
+		helper.assertBlockPresent(Blocks.STONE, below.north());
 		helper.succeed();
 	}
 }
