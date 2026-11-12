@@ -2,6 +2,8 @@ package dev.jensh.cablecloak.client;
 
 import dev.jensh.cablecloak.CableCloak;
 import dev.jensh.cablecloak.CloakBlockEntity.CloakRenderData;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Predicate;
 import net.fabricmc.fabric.api.client.model.loading.v1.wrapper.WrapperBlockStateModel;
 import net.fabricmc.fabric.api.client.renderer.v1.mesh.QuadEmitter;
@@ -10,10 +12,12 @@ import net.minecraft.client.color.block.BlockTintSource;
 import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.client.renderer.block.BlockStateModelSet;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
 import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jspecify.annotations.Nullable;
 
@@ -28,6 +32,30 @@ public class CloakedCableModel extends WrapperBlockStateModel {
 
 	private static @Nullable CloakRenderData cloak(BlockAndTintGetter level, BlockPos pos) {
 		return level.getBlockEntityRenderData(pos) instanceof CloakRenderData data ? data : null;
+	}
+
+	/**
+	 * False for block entity blocks whose model has no quads (chests, signs, beds...): a renderer draws those, so
+	 * a facade of them would be invisible. Other models count as drawable, including custom ones that only emit
+	 * quads in world.
+	 */
+	public static boolean hasGeometry(BlockState state) {
+		if (!(state.getBlock() instanceof EntityBlock)) {
+			return true;
+		}
+		List<BlockStateModelPart> parts = new ArrayList<>();
+		models().get(state).collectParts(RandomSource.create(42L), parts);
+		for (BlockStateModelPart part : parts) {
+			if (!part.getQuads(null).isEmpty()) {
+				return true;
+			}
+			for (Direction direction : Direction.values()) {
+				if (!part.getQuads(direction).isEmpty()) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	private static BlockStateModelSet models() {

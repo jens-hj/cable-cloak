@@ -1,5 +1,6 @@
 package dev.jensh.cablecloak;
 
+import java.util.function.Predicate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
@@ -22,6 +23,12 @@ import org.jspecify.annotations.Nullable;
 
 /** Right-click handling on framed cables: apply a look, or sneak with an empty hand to take things off. */
 public final class CloakInteractions {
+	/**
+	 * Client-side check that a block's model has geometry to copy. Chests, signs and the like have an empty model
+	 * and are drawn by a renderer instead; the server cannot tell, but a refused click never reaches it.
+	 */
+	public static Predicate<BlockState> hasModel = state -> true;
+
 	private CloakInteractions() {
 	}
 
@@ -48,6 +55,9 @@ public final class CloakInteractions {
 			return InteractionResult.PASS;
 		}
 		BlockState look = lookFor(blockItem.getBlock(), player, hand, stack, hit);
+		if (look != null && level.isClientSide() && !hasModel.test(look)) {
+			look = null;
+		}
 		if (look == null) {
 			if (level.isClientSide()) {
 				player.sendOverlayMessage(Component.translatable("message.cable_cloak.unsupported", stack.getHoverName()));
@@ -115,7 +125,7 @@ public final class CloakInteractions {
 		if (stack.isEmpty()) {
 			return;
 		}
-		// Fills the inventory and drops whatever does not fit.
-		player.getInventory().placeItemBackInInventory(stack.copy(), Prediction.SERVER_ONLY);
+		// Fills the inventory and drops whatever does not fit; the inventory menu syncs the slots.
+		player.getInventory().placeItemBackInInventory(stack.copy(), false, Prediction.SERVER_ONLY);
 	}
 }
