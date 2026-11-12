@@ -7,8 +7,8 @@ Currently supports the cables of [OmniVault](https://modrinth.com/mod/omnivault)
 ## How to use
 
 1. **Craft Cloak Frames**: 4 sticks in the corners and 4 iron nuggets on the sides give 8 frames.
-2. **Put a frame on a cable**: right-click the cable with a Cloak Frame. It becomes a full, solid block with an iron frame around the cable.
-3. **Give it a look**: right-click the frame with **any block**. Stone bricks, planks, grass, leaves, glass, stairs, blocks from other mods: the facade copies the block's model, colours and orientation. One block is used up.
+2. **Put a frame on a cable**: right-click the cable with a Cloak Frame, or right-click the side of a block next to it, the way you'd place a block into the cable's spot. It becomes a full, solid block with an iron frame around the cable.
+3. **Give it a look**: right-click the frame (or the face of a neighbouring block, again aiming into the cable's spot) with **any block**. Stone bricks, planks, grass, leaves, glass, stairs, blocks from other mods: the facade copies the block's model, colours and orientation. One block is used up.
 4. **Change it**: right-click with another block to swap the look. You get the old block back.
 5. **Take it off**: sneak + right-click with an empty hand removes the look, a second time removes the frame. Breaking the cable drops the frame and the block too.
 

@@ -6,8 +6,10 @@ Currently supports the cables of [OmniVault](https://modrinth.com/mod/omnivault)
 ## Use
 
 1. Craft **Cloak Frames** (8 from 4 sticks + 4 iron nuggets, sticks in the corners).
-2. Right-click a cable with a frame: the cable gets an empty frame and becomes a full block.
-3. Right-click the frame with any block item (vanilla or modded) to give it that block's look.
+2. Right-click a cable with a frame (or the face of a block next to it, aiming into the cable's spot like
+   placing a block there): the cable gets an empty frame and becomes a full block.
+3. Right-click the frame (again, directly or from a neighbouring face) with any block item, vanilla or modded,
+   to give it that block's look.
    One block is used up; right-click with another block to swap it (the old one comes back).
 4. Sneak + right-click with an empty hand takes the look off, then the frame.
    Breaking the cable drops the frame and the block as well.
@@ -22,7 +24,7 @@ Blocks drawn only by a block entity renderer (chests, signs, beds…) and invisi
   networks, dyeing and connections behave exactly as before.
 - `CableBlock#getShape` is extended with the facade's shape, so cloaked cables are solid.
 - On the client every cable model is wrapped (`CloakedCableModel`): a cloaked cable emits the copied block's
-  model (tints baked in), plus the cable itself when the copy isn't a full opaque block (glass, stairs, leaves…).
+  model (tints baked in, smooth lighting forced back on since cables emit light), plus the cable itself when the copy isn't a full opaque block (glass, stairs, leaves…).
 - `CloakSupport` decides what counts as a cable — the one place to extend for other cable mods.
 
 ## Development
