@@ -44,6 +44,9 @@ dependencies {
 	if (providers.gradleProperty("shaderPack").isPresent()) {
 		localRuntime "maven.modrinth:sodium:${project.sodium_version}"
 		localRuntime "maven.modrinth:iris:${project.iris_version}"
+		// MoreCulling swaps in its own face culling under Sodium, which once hid facade faces next to cables
+		localRuntime "maven.modrinth:moreculling:${project.moreculling_version}"
+		localRuntime "maven.modrinth:cloth-config:${project.cloth_config_version}"
 	}
 }
 

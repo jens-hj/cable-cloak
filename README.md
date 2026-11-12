@@ -36,7 +36,7 @@ nix develop -c ./gradlew build              # build + server gametests
 nix develop -c ./gradlew runGameTest        # server gametests only
 nix develop -c ./gradlew runClientGameTest  # renders every cloak state, screenshots in build/run/clientGameTest/gallery
 nix develop -c ./gradlew runClient
-# Same client test with Sodium + Iris and a shader pack, on an isolated Xvfb display (software GL).
+# Same client test with Sodium + Iris + MoreCulling and a shader pack, on an isolated Xvfb display (software GL).
 # Fails unless Iris reports the pack active; screenshots in build/run/clientGameTest/gallery_shaders.
 # A <pack>.zip.txt next to the pack is copied as its settings (Photon needs SH_SKYLIGHT=false on llvmpipe).
 nix develop -c python3 scripts/headless.py ./gradlew runClientGameTest -PshaderPack=/path/to/photon_v1.4.zip
