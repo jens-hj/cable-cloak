@@ -12,6 +12,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
@@ -54,12 +55,40 @@ public final class CloakInteractions {
 		if (player.isSecondaryUseActive() || !(stack.getItem() instanceof BlockItem blockItem)) {
 			return InteractionResult.PASS;
 		}
-		BlockState look = lookFor(blockItem.getBlock(), player, hand, stack, hit);
+		return applyLook(player, level, pos, cloak, stack, blockItem, new BlockPlaceContext(player, hand, stack, hit), true);
+	}
+
+	/**
+	 * A block item used on the face of a block next to a framed cable, where it would be placed: dress the cable
+	 * instead (placing there fails anyway, the cable is in the way). Runs after the clicked block's own use.
+	 */
+	public static @Nullable InteractionResult onPlaceAgainst(UseOnContext context, BlockItem blockItem) {
+		Player player = context.getPlayer();
+		if (player == null || player.isSpectator()) {
+			return null;
+		}
+		BlockPlaceContext place = new BlockPlaceContext(context);
+		BlockPos pos = place.getClickedPos();
+		Level level = context.getLevel();
+		if (pos.equals(context.getClickedPos()) || !CloakSupport.isCloakable(level.getBlockState(pos))) {
+			return null;
+		}
+		CloakBlockEntity cloak = CloakSupport.cloakAt(level, pos);
+		if (cloak == null || !cloak.hasFrame()) {
+			return null;
+		}
+		InteractionResult result = applyLook(player, level, pos, cloak, context.getItemInHand(), blockItem, place, false);
+		return result == InteractionResult.PASS ? InteractionResult.FAIL : result;
+	}
+
+	private static InteractionResult applyLook(Player player, Level level, BlockPos pos, CloakBlockEntity cloak, ItemStack stack,
+			BlockItem blockItem, BlockPlaceContext place, boolean refusalMessage) {
+		BlockState look = lookFor(blockItem.getBlock(), place);
 		if (look != null && level.isClientSide() && !hasModel.test(look)) {
 			look = null;
 		}
 		if (look == null) {
-			if (level.isClientSide()) {
+			if (level.isClientSide() && refusalMessage) {
 				player.sendOverlayMessage(Component.translatable("message.cable_cloak.unsupported", stack.getHoverName()));
 			}
 			return InteractionResult.FAIL;
@@ -81,13 +110,13 @@ public final class CloakInteractions {
 	}
 
 	/** The state a facade of {@code block} shows, oriented as if placed; null if it cannot be shown as a facade. */
-	static @Nullable BlockState lookFor(Block block, Player player, InteractionHand hand, ItemStack stack, BlockHitResult hit) {
+	static @Nullable BlockState lookFor(Block block, BlockPlaceContext place) {
 		if (CloakSupport.isCloakable(block)) {
 			return null;
 		}
 		BlockState state;
 		try {
-			state = block.getStateForPlacement(new BlockPlaceContext(player, hand, stack, hit));
+			state = block.getStateForPlacement(place);
 		} catch (RuntimeException e) {
 			state = null;
 		}

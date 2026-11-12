@@ -1,5 +1,6 @@
 package dev.jensh.cablecloak;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionResult;
@@ -8,7 +9,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 
-/** Put on a cable to give it an empty frame, ready to take the look of a block. */
+/** Put on a cable (or on a block face next to one) to give it an empty frame, ready to take the look of a block. */
 public class CloakFrameItem extends Item {
 	public CloakFrameItem(Properties properties) {
 		super(properties);
@@ -17,10 +18,15 @@ public class CloakFrameItem extends Item {
 	@Override
 	public InteractionResult useOn(UseOnContext context) {
 		Level level = context.getLevel();
-		if (!CloakSupport.isCloakable(level.getBlockState(context.getClickedPos()))) {
-			return InteractionResult.PASS;
+		// The clicked cable, or the cable in the spot the clicked face looks into (like placing a block there).
+		BlockPos pos = context.getClickedPos();
+		if (!CloakSupport.isCloakable(level.getBlockState(pos))) {
+			pos = pos.relative(context.getClickedFace());
+			if (!CloakSupport.isCloakable(level.getBlockState(pos))) {
+				return InteractionResult.PASS;
+			}
 		}
-		CloakBlockEntity cloak = CloakSupport.cloakAt(level, context.getClickedPos());
+		CloakBlockEntity cloak = CloakSupport.cloakAt(level, pos);
 		if (cloak == null || cloak.hasFrame()) {
 			return InteractionResult.PASS;
 		}
@@ -30,7 +36,7 @@ public class CloakFrameItem extends Item {
 			if (player == null || !player.getAbilities().instabuild) {
 				context.getItemInHand().shrink(1);
 			}
-			level.playSound(null, context.getClickedPos(), SoundEvents.COPPER_PLACE, SoundSource.BLOCKS, 1.0f, 1.0f);
+			level.playSound(null, pos, SoundEvents.COPPER_PLACE, SoundSource.BLOCKS, 1.0f, 1.0f);
 		}
 		return InteractionResult.SUCCESS;
 	}
