@@ -81,6 +81,13 @@ public class CloakClientGameTest implements FabricClientGameTest {
 			context.waitTicks(20);
 			sp.getConnection().waitForChunksRender();
 			shoot(context, out, "above");
+
+			// Face on to where the bare cable run meets the cloaked half: that face must be drawn.
+			BlockPos run = start.offset(LOOKS.length - 1, 0, -3);
+			sp.getServer().runCommand(String.format(Locale.ROOT, "tp @a %.2f %.2f %.2f -90 20", run.getX() - 2.5, run.getY() + 1.2 - 1.62, run.getZ() + 0.5));
+			context.waitTicks(20);
+			sp.getConnection().waitForChunksRender();
+			shoot(context, out, "run_end");
 		}
 	}
 
