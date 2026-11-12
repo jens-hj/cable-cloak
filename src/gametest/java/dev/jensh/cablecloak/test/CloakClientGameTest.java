@@ -96,6 +96,13 @@ public class CloakClientGameTest implements FabricClientGameTest {
 			sp.getConnection().waitForChunksRender();
 			shoot(context, out, "run_end");
 
+			// From above, onto the cloaked cable a bare one rises out of: its top face must be drawn around the riser.
+			BlockPos riser = start.offset(0, 0, -3).offset(LOOKS.length * 2 - 4, 1, 0);
+			sp.getServer().runCommand(String.format(Locale.ROOT, "tp @a %.2f %.2f %.2f 180 60", riser.getX() + 0.5, riser.getY() + 3.0 - 1.62, riser.getZ() + 2.0));
+			context.waitTicks(20);
+			sp.getConnection().waitForChunksRender();
+			shoot(context, out, "riser");
+
 			// Night, torch-lit: cloaked cables (left) beside real stone bricks (right) should be lit the same, smoothly.
 			BlockPos lit = o.offset(0, 0, 8);
 			sp.getServer().runOnServer(server -> buildLightingScene(server, lit));
@@ -136,6 +143,14 @@ public class CloakClientGameTest implements FabricClientGameTest {
 			if (i >= length / 2) {
 				cloak(level, pos, Blocks.STONE_BRICKS.defaultBlockState());
 			}
+		}
+		// A bare cable rising out of the top of a cloaked one.
+		BlockPos riser = start.offset(length - 3, 1, 0);
+		for (int y = 0; y < 2; y++) {
+			level.setBlock(riser.above(y), NetworkContent.INVENTORY_CABLE.get().defaultBlockState(), Block.UPDATE_ALL);
+		}
+		for (int y = 0; y < 2; y++) {
+			level.setBlock(riser.above(y), level.getBlockState(riser.above(y)), Block.UPDATE_ALL);
 		}
 	}
 
