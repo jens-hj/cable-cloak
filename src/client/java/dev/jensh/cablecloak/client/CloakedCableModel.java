@@ -17,6 +17,7 @@ import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jspecify.annotations.Nullable;
@@ -85,7 +86,11 @@ public class CloakedCableModel extends WrapperBlockStateModel {
 			}
 			return true;
 		});
-		models().get(look).emitQuads(emitter, level, pos, look, random, cullTest);
+		// The given cull test compares the cable's shape with its neighbours, which hides the facade's face wherever
+		// the cable connects (arm ends match). Cull the facade as the block it copies instead.
+		Predicate<@Nullable Direction> facadeCull = direction -> direction != null
+				&& !Block.shouldRenderFace(look, level.getBlockState(pos.relative(direction)), direction);
+		models().get(look).emitQuads(emitter, level, pos, look, random, facadeCull);
 		emitter.popTransform();
 	}
 
