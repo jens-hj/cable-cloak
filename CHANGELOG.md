@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1
+
+- Fixed facade faces disappearing where a cable joins them when playing with Sodium and MoreCulling.
+
 ## 0.2.0
 
 - Frames and looks can now be put on a cable by right-clicking the face of a neighbouring block, aiming into the cable's spot, just like placing a block there.
