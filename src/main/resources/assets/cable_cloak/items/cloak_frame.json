@@ -1,0 +1,6 @@
+{
+	"model": {
+		"type": "minecraft:model",
+		"model": "cable_cloak:block/cloak_frame"
+	}
+}

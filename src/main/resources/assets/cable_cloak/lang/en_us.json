@@ -1,0 +1,5 @@
+{
+	"item.cable_cloak.cloak_frame": "Cloak Frame",
+	"block.cable_cloak.cloak_frame": "Cloak Frame",
+	"message.cable_cloak.unsupported": "%s can't be used as a cloak"
+}

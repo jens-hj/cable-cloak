@@ -1,0 +1,11 @@
+{
+	"required": true,
+	"package": "dev.jensh.cablecloak.mixin",
+	"compatibilityLevel": "JAVA_25",
+	"mixins": [
+		"CableBlockMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

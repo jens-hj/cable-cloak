@@ -1,0 +1,17 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"category": "building",
+	"pattern": [
+		"SNS",
+		"N N",
+		"SNS"
+	],
+	"key": {
+		"S": "minecraft:stick",
+		"N": "minecraft:iron_nugget"
+	},
+	"result": {
+		"id": "cable_cloak:cloak_frame",
+		"count": 8
+	}
+}

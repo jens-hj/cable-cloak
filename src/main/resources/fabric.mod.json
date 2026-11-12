@@ -1,0 +1,28 @@
+{
+	"schemaVersion": 1,
+	"id": "cable_cloak",
+	"version": "${version}",
+	"name": "Cable Cloak",
+	"description": "Hide cables behind facades that copy the look of any block.",
+	"authors": ["jens-hj"],
+	"contact": {
+		"homepage": "https://modrinth.com/mod/cable-cloak",
+		"sources": "https://github.com/jens-hj/cable-cloak",
+		"issues": "https://github.com/jens-hj/cable-cloak/issues"
+	},
+	"license": "MIT",
+	"icon": "assets/cable_cloak/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": ["dev.jensh.cablecloak.CableCloak"],
+		"client": ["dev.jensh.cablecloak.client.CableCloakClient"]
+	},
+	"mixins": ["cable_cloak.mixins.json"],
+	"depends": {
+		"fabricloader": ">=0.20.0",
+		"fabric-api": "*",
+		"minecraft": "~26.3",
+		"java": ">=25",
+		"omnivault": ">=2.0.0"
+	}
+}
