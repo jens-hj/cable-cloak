@@ -1,0 +1,15 @@
+{
+	"schemaVersion": 1,
+	"id": "cable_cloak_test",
+	"version": "${version}",
+	"name": "Cable Cloak Tests",
+	"environment": "*",
+	"entrypoints": {
+		"fabric-gametest": [
+			"dev.jensh.cablecloak.test.CloakGameTests"
+		]
+	},
+	"depends": {
+		"cable_cloak": "*"
+	}
+}
