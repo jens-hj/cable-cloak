@@ -27,6 +27,9 @@ import org.jspecify.annotations.Nullable;
  */
 @SuppressWarnings("UnstableApiUsage")
 public class CloakClientGameTest implements FabricClientGameTest {
+	/** Set by -PshaderPack: Sodium + Iris are loaded and the pack is switched on. */
+	private static final boolean SHADERS = Boolean.getBoolean("cable_cloak.shaders");
+
 	/** A row of cables: bare, bare frame, then a facade per entry. */
 	private static final BlockState[] LOOKS = {
 			null,
@@ -75,7 +78,11 @@ public class CloakClientGameTest implements FabricClientGameTest {
 			});
 
 			context.getInput().pressKey(options -> options.keyToggleGui);
-			Path out = Path.of("gallery");
+			Path out = Path.of(SHADERS ? "gallery_shaders" : "gallery");
+			if (SHADERS) {
+				context.waitTicks(100);
+				context.runOnClient(mc -> assertShaderPackInUse());
+			}
 			shoot(context, out, "row");
 			tp(sp, o.getX() + 0.5, o.getY() + 6, o.getZ() - 1, 55);
 			context.waitTicks(20);
@@ -164,6 +171,19 @@ public class CloakClientGameTest implements FabricClientGameTest {
 
 	private static void tp(TestSingleplayerContext sp, double x, double eyeY, double z, float pitch) {
 		sp.getServer().runCommand(String.format(Locale.ROOT, "tp @a %.2f %.2f %.2f 180 %.1f", x, eyeY - 1.62, z, pitch));
+	}
+
+	/** Iris is only on the test classpath in shader runs, so ask its API reflectively. */
+	private static void assertShaderPackInUse() {
+		try {
+			Class<?> api = Class.forName("net.irisshaders.iris.api.v0.IrisApi");
+			Object instance = api.getMethod("getInstance").invoke(null);
+			if (!(boolean) api.getMethod("isShaderPackInUse").invoke(instance)) {
+				throw new AssertionError("shader test run, but Iris has no shader pack active");
+			}
+		} catch (ReflectiveOperationException e) {
+			throw new AssertionError("shader test run, but the Iris API is missing", e);
+		}
 	}
 
 	private static void shoot(ClientGameTestContext context, Path out, String name) {
