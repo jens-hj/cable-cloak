@@ -1,3 +1,5 @@
+<p align="center"><img width="900" src="https://raw.githubusercontent.com/jens-hj/cable-cloak/main/docs/page/row.png" alt="Cables in a bare frame and cloaked as stone bricks, grass, leaves, glass, stairs and a bookshelf"></p>
+
 Tired of cables snaking across your base? **Cable Cloak** lets you hide them inside a facade that looks like any block you want, vanilla or modded, without touching how the network works.
 
 Currently supports the cables of [OmniVault](https://modrinth.com/mod/omnivault): Nexus Cable and Inventory Cable, in every colour.
