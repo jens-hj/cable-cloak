@@ -30,7 +30,8 @@
         ];
       in {
         devShells.default = pkgs.mkShell {
-          packages = [ jdk (pkgs.python3.withPackages (ps: [ ps.pillow ])) pkgs.git ];
+          # xvfb: isolated display for shader client tests (scripts/headless.py)
+          packages = [ jdk (pkgs.python3.withPackages (ps: [ ps.pillow ])) pkgs.git pkgs.xvfb ];
           JAVA_HOME = "${jdk}";
           # /run/opengl-driver/lib holds the host GPU driver on NixOS
           LD_LIBRARY_PATH = "/run/opengl-driver/lib:${pkgs.lib.makeLibraryPath runtimeLibs}";

@@ -39,6 +39,12 @@ dependencies {
 
 	// OmniVault: the cables we cloak
 	implementation "maven.modrinth:omnivault:${project.omnivault_version}"
+
+	// Shader test: -PshaderPack=/path/to/pack.zip adds Sodium + Iris to the dev/test client
+	if (providers.gradleProperty("shaderPack").isPresent()) {
+		localRuntime "maven.modrinth:sodium:${project.sodium_version}"
+		localRuntime "maven.modrinth:iris:${project.iris_version}"
+	}
 }
 
 fabricApi {
@@ -114,10 +120,30 @@ modrinth {
 tasks.named("modrinth") { notCompatibleWithConfigurationCache("Minotaur uses Task.project") }
 tasks.named("modrinthSyncBody") { notCompatibleWithConfigurationCache("Minotaur uses Task.project") }
 
-// Mute the game during client test runs.
+// Mute the game during client test runs. With -PshaderPack, also install the pack and turn Iris on.
 def gameTestOptions = layout.buildDirectory.file("run/clientGameTest/options.txt")
+def gameTestDir = layout.buildDirectory.dir("run/clientGameTest")
+def shaderPack = providers.gradleProperty("shaderPack")
 tasks.named("runClientGameTest") {
+	if (shaderPack.isPresent()) {
+		jvmArgs "-Dcable_cloak.shaders=true"
+	}
 	doFirst {
+		if (shaderPack.isPresent()) {
+			def pack = new File(shaderPack.get())
+			def dir = gameTestDir.get().asFile
+			def packs = new File(dir, "shaderpacks")
+			packs.mkdirs()
+			java.nio.file.Files.copy(pack.toPath(), new File(packs, pack.name).toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+			// The pack's own settings file next to it, if any (e.g. lighter settings for software GL).
+			def settings = new File(pack.path + ".txt")
+			if (settings.isFile()) {
+				java.nio.file.Files.copy(settings.toPath(), new File(packs, pack.name + ".txt").toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+			}
+			def iris = new File(dir, "config/iris.properties")
+			iris.parentFile.mkdirs()
+			iris.text = "enableShaders=true\nshaderPack=${pack.name}\ndisableUpdateMessage=true\nmaxShadowRenderDistance=6\n"
+		}
 		def options = gameTestOptions.get().asFile
 		options.parentFile.mkdirs()
 		def lines = options.exists() ? options.readLines().findAll { !it.startsWith("soundCategory_master:") } : []
