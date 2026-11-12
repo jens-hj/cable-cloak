@@ -1,0 +1,126 @@
+plugins {
+	id 'net.fabricmc.fabric-loom' version "${loom_version}"
+	id 'com.modrinth.minotaur' version "${minotaur_version}"
+}
+
+base {
+	archivesName = 'cable-cloak'
+}
+
+repositories {
+	exclusiveContent {
+		forRepository {
+			maven {
+				name = 'Modrinth'
+				url = 'https://api.modrinth.com/maven'
+			}
+		}
+		filter {
+			includeGroup 'maven.modrinth'
+		}
+	}
+}
+
+loom {
+	splitEnvironmentSourceSets()
+
+	mods {
+		"cable_cloak" {
+			sourceSet sourceSets.main
+			sourceSet sourceSets.client
+		}
+	}
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+	// OmniVault: the cables we cloak
+	implementation "maven.modrinth:omnivault:${project.omnivault_version}"
+}
+
+fabricApi {
+	configureTests {
+		createSourceSet = true
+		modId = "cable_cloak_test"
+		enableGameTests = true
+		enableClientGameTests = true
+		eula = true // By setting this to true, you agree to the Minecraft EULA.
+	}
+}
+
+processResources {
+	def version = project.version
+	inputs.property "version", version
+
+	filesMatching("fabric.mod.json") {
+		expand "version": version
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = 25
+}
+
+java {
+	withSourcesJar()
+	sourceCompatibility = JavaVersion.VERSION_25
+	targetCompatibility = JavaVersion.VERSION_25
+}
+
+jar {
+	def projectName = project.name
+	inputs.property "projectName", projectName
+
+	from("LICENSE") {
+		rename { "${it}_$projectName" }
+	}
+}
+
+// Publishing: ./gradlew modrinth (upload version), ./gradlew modrinthSyncBody (description).
+// Token from $MODRINTH_TOKEN or ~/.config/modrinth-token.
+def modrinthToken = providers.environmentVariable("MODRINTH_TOKEN").orElse(
+		providers.fileContents(layout.projectDirectory.file(
+				"${System.getProperty('user.home')}/.config/modrinth-token")).asText.map { it.trim() })
+
+// The section of CHANGELOG.md for the current version.
+def currentChangelog = providers.fileContents(layout.projectDirectory.file("CHANGELOG.md")).asText.map { text ->
+	def section = text.split(/(?m)^## /).find { it.startsWith("${project.version}\n") || it.startsWith("${project.version}\r") }
+	section ? section.substring(section.indexOf('\n') + 1).trim() : ""
+}
+
+modrinth {
+	token = modrinthToken
+	// ./gradlew modrinth -PmodrinthDryRun prints the upload instead of sending it
+	debugMode = providers.gradleProperty("modrinthDryRun").isPresent()
+	projectId = "cable-cloak"
+	versionNumber = project.version
+	versionName = "${project.version}"
+	versionType = "release"
+	uploadFile = jar
+	gameVersions = [project.minecraft_version]
+	loaders = ["fabric"]
+	changelog = currentChangelog
+	syncBodyFrom = providers.fileContents(layout.projectDirectory.file("docs/MODRINTH.md")).asText
+	dependencies {
+		required.project "fabric-api"
+		required.project "omnivault"
+	}
+}
+
+// Minotaur reads Task.project at execution time
+tasks.named("modrinth") { notCompatibleWithConfigurationCache("Minotaur uses Task.project") }
+tasks.named("modrinthSyncBody") { notCompatibleWithConfigurationCache("Minotaur uses Task.project") }
+
+// Mute the game during client test runs.
+def gameTestOptions = layout.buildDirectory.file("run/clientGameTest/options.txt")
+tasks.named("runClientGameTest") {
+	doFirst {
+		def options = gameTestOptions.get().asFile
+		options.parentFile.mkdirs()
+		def lines = options.exists() ? options.readLines().findAll { !it.startsWith("soundCategory_master:") } : []
+		options.text = (lines + "soundCategory_master:0.0").join("\n") + "\n"
+	}
+}
