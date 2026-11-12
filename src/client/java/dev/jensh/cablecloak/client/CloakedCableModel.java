@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.function.Predicate;
 import net.fabricmc.fabric.api.client.model.loading.v1.wrapper.WrapperBlockStateModel;
 import net.fabricmc.fabric.api.client.renderer.v1.mesh.QuadEmitter;
+import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.color.block.BlockTintSource;
 import net.minecraft.client.renderer.block.BlockAndTintGetter;
@@ -75,7 +76,13 @@ public class CloakedCableModel extends WrapperBlockStateModel {
 		}
 		BlockState look = cloak.facade() != null ? cloak.facade() : CableCloak.FRAME_MODEL_BLOCK.defaultBlockState();
 		// Tints are looked up against the block being drawn (the cable), so bake the copied block's own in.
+		// Cables give off light, which makes the renderer fall back to flat lighting for the whole block. Light the
+		// facade as the block it copies would be lit: smooth, unless that block glows or its model opts out.
+		boolean smooth = look.getLightEmission() == 0;
 		emitter.pushTransform(quad -> {
+			if (quad.ambientOcclusion() == TriState.DEFAULT) {
+				quad.ambientOcclusion(TriState.of(smooth));
+			}
 			int tintIndex = quad.tintIndex();
 			if (tintIndex != -1) {
 				BlockTintSource source = Minecraft.getInstance().getBlockColors().getTintSource(look, tintIndex);
